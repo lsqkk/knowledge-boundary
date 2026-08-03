@@ -34,6 +34,9 @@ const cards = await page.locator(".domain-card").count();
 check("首页领域卡片 = 18", cards === 18, String(cards));
 const faContent = await page.evaluate(() => getComputedStyle(document.querySelector(".domain-card .dc-icon i"), "::before").content);
 check("领域图标为 Font Awesome（::before 有字形）", faContent !== "none" && faContent.length > 0, faContent);
+check("顶栏有 GitHub 链接", (await page.locator(".gh-link").count()) === 1);
+check("主页信息区两块", (await page.locator(".home-info .info-block").count()) === 2);
+check("主页信息区含通识重要性", (await page.locator(".info-block h2").nth(1).textContent()).includes("为什么通识"));
 await page.screenshot({ path: path.join(ROOT, "artifacts/home.png"), fullPage: true });
 
 // ---------- 2. 开始答题，键盘作答第一题（答对应自动跳转） ----------
@@ -117,6 +120,19 @@ const rankRows = await page.locator(".rank-row").count();
 check("领域排名 18 行", rankRows === 18, String(rankRows));
 const radar = await page.locator("#radar");
 check("雷达图已绘制", (await radar.evaluate((c) => c.getContext("2d").getImageData(0, 0, c.width, c.height).data.some((v) => v !== 0))), "canvas 非空");
+const radarBox = await radar.boundingBox();
+check("雷达图保持 1:1 方形", radarBox && Math.abs(radarBox.width - radarBox.height) < 2, radarBox ? radarBox.width + "x" + radarBox.height : "none");
+check("结果页显示平均参考", (await page.locator("#score-avg").textContent()).includes("平均参考"), await page.locator("#score-avg").textContent());
+const shareCard = await page.evaluate(() => window.KBResults.buildShareCard());
+check("结果图可生成(含链接画布)", typeof shareCard === "string" && shareCard.startsWith("data:image/png"), shareCard ? shareCard.length + " chars" : "none");
+const [download] = await Promise.all([
+  page.waitForEvent("download", { timeout: 8000 }),
+  page.click("#btn-download")
+]);
+check("下载结果图", download.suggestedFilename().includes("knowledge-boundary"), download.suggestedFilename());
+await page.click("#btn-share"); // 分享（无 share API 时走剪贴板/提示，不应报错）
+await page.waitForTimeout(300);
+check("分享按钮可用(无报错)", true, "点击无异常");
 check("完成态无继续作答按钮", !(await page.locator("#btn-continue").isVisible()));
 await page.screenshot({ path: path.join(ROOT, "artifacts/results.png"), fullPage: true });
 

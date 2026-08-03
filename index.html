@@ -26,6 +26,7 @@
       <span class="brand-sub">Knowledge Boundary</span>
     </a>
     <div class="topbar-right">
+      <a class="gh-link" href="https://github.com/lsqkk/knowledge-boundary" target="_blank" rel="noopener" title="GitHub 项目源码" aria-label="GitHub 项目源码"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
       <span class="topbar-chip" id="topbar-progress" hidden>
         <span class="chip-dot" id="chip-dot"></span>
         <span id="chip-text">0 / 596</span>
@@ -61,6 +62,24 @@
           <p>按知识体量赋权 · 权重越大题量越多</p>
         </div>
         <div class="domain-grid" id="domain-grid"><!-- 动态渲染 --></div>
+      </div>
+
+      <div class="home-info">
+        <div class="info-block">
+          <h2><i class="fa-solid fa-circle-info" aria-hidden="true"></i> 作答规则</h2>
+          <ul>
+            <li><b>答满 100 题</b>后，随时可以查看当前结果——没做完也没关系，看完一键「继续作答」接着来。</li>
+            <li>每道题<b>作答即锁定</b>；答对自动进下一题，答错停留看清解析，手动点「下一题」。</li>
+            <li>答错可以消耗一次<b>「我手滑了」</b>机会改判为「这题我确实会」，全程共 5 次。</li>
+            <li>进度<b>实时自动保存</b>到本机浏览器，刷新或误关都不会丢。</li>
+          </ul>
+        </div>
+        <div class="info-block">
+          <h2><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> 为什么通识水平很重要？</h2>
+          <p>通识知识是一座<b>迁移的桥梁</b>：物理里的「反馈」能帮你理解经济周期，历史里的「博弈」能帮你读懂今天的新闻。把 A 领域的模型用到 B 领域，正是创造力的来源。</p>
+          <p>世界变化越来越快，单一技能会过时，而<b>广博的知识面是适应力的底座</b>——它让你对新事物不陌生、对陌生问题敢下手。</p>
+          <p>更重要的是，知识面宽的人更能<b>分辨信息与谎言</b>：理解背景、识别偏差、做出不后悔的决策。所谓「通识」，就是让你在任何一个房间里，都能听懂别人在聊什么。</p>
+        </div>
       </div>
     </section>
 
@@ -113,6 +132,7 @@
           <div class="score-meta">
             <p id="score-answered">已作答 0 / 596</p>
             <p id="score-rank">综合等级：<b id="rank-name">—</b></p>
+            <p id="score-avg">平均参考：—</p>
             <p class="score-desc" id="score-desc"></p>
           </div>
         </div>
@@ -141,6 +161,8 @@
 
       <div class="result-actions">
         <button class="btn btn-primary" id="btn-continue" hidden>继续作答</button>
+        <button class="btn btn-secondary" id="btn-download"><i class="fa-solid fa-download" aria-hidden="true"></i> 下载结果图</button>
+        <button class="btn btn-secondary" id="btn-share"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> 分享结果</button>
         <button class="btn btn-secondary" id="btn-retry-weak">重测薄弱疆域</button>
         <button class="btn btn-ghost" id="btn-home">返回首页</button>
         <button class="btn btn-danger-ghost" id="btn-reset">清空并重来</button>
@@ -150,7 +172,14 @@
 
   <footer class="footer">
     <p>知识边界 · 一项以 596 道题丈量通识疆域的实验 — 题目数据保存在本机浏览器。</p>
+    <p class="footer-links">
+      <a href="https://kn-bo.130923.xyz" target="_blank" rel="noopener">kn-bo.130923.xyz</a>
+      <span>·</span>
+      <a href="https://github.com/lsqkk/knowledge-boundary" target="_blank" rel="noopener"><i class="fa-brands fa-github" aria-hidden="true"></i> GitHub</a>
+    </p>
   </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <!-- 领域与题库 -->
   <script src="js/domains.js"></script>

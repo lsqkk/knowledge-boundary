@@ -65,6 +65,16 @@ window.KBApp = (function () {
   }
 
   var autoTimer = null;
+  var toastTimer = null;
+
+  // 轻提示
+  function toast(msg) {
+    var t = $("#toast");
+    t.textContent = msg;
+    t.hidden = false;
+    window.clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 2600);
+  }
 
   function scheduleNext() {
     window.clearTimeout(autoTimer);
@@ -203,6 +213,8 @@ window.KBApp = (function () {
 
   /* ---------------- 按钮绑定（结果页） ---------------- */
   function bindResultsButtons() {
+    $("#btn-download").onclick = function () { window.KBResults.downloadResult(); };
+    $("#btn-share").onclick = function () { window.KBResults.shareResult(); };
     $("#btn-retry-weak").onclick = function () { window.KBApp.onRetryWeak(); };
     $("#btn-home").onclick = function () { window.KBApp.onHome(); };
     $("#btn-reset").onclick = function () { window.KBApp.onReset(); };
@@ -216,6 +228,7 @@ window.KBApp = (function () {
   return {
     init: init, onStart: onStart, onResume: onResume, onHome: onHome,
     onAnswer: onAnswer, onForgive: onForgive, onNext: onNext, onPrev: onPrev, onContinue: onContinue,
-    onRetryWeak: onRetryWeak, onReset: onReset, showResults: showResults
+    onRetryWeak: onRetryWeak, onReset: onReset, showResults: showResults,
+    toast: toast
   };
 })();
