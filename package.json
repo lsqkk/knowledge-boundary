@@ -1,0 +1,19 @@
+{
+  "name": "knowledge-boundary",
+  "version": "1.0.0",
+  "description": "你的知识，止于何处？用 596 道选择题，横跨 18 大知识领域，探测你知识面的疆域边界。",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "validate": "node scripts/validate.js",
+    "rebalance": "node scripts/rebalance.js",
+    "smoke": "node scripts/smoke.mjs",
+    "test": "node scripts/validate.js && node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1"
+  }
+}
