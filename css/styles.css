@@ -303,6 +303,16 @@ body {
 .legend-swatch { width: 10px; height: 10px; border-radius: 3px; }
 
 .rank-list { display: grid; gap: 10px; }
+
+/* 疆域明细：可见滑条，提示可滚动 */
+.domain-rank {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.domain-rank::-webkit-scrollbar { width: 8px; }
+.domain-rank::-webkit-scrollbar-track { background: transparent; }
+.domain-rank::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 99px; }
+.domain-rank::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 .rank-row {
   display: grid; grid-template-columns: 34px 1fr 58px;
   gap: 12px; align-items: center;

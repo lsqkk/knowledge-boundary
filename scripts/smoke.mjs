@@ -43,6 +43,12 @@ await page.screenshot({ path: path.join(ROOT, "artifacts/home.png"), fullPage: t
 await page.click("#btn-start");
 await page.waitForSelector(".q-card");
 check("题目标签渲染领域图标", (await page.locator("#q-domain").innerHTML()).includes('<i class="fa-solid fa-'), await page.locator("#q-domain").innerHTML());
+const coverage18 = await page.evaluate(() => {
+  const st = window.KBQuiz._state;
+  const cats = st.order.slice(0, 18).map((id) => st.byId[id].category);
+  return new Set(cats).size;
+});
+check("前18题覆盖足够多领域(均衡抽题)", coverage18 >= 14, "distinct=" + coverage18);
 const c1 = await currentAnswerIdx();
 await page.keyboard.press(String.fromCharCode(65 + c1)); // 选正确项
 await page.waitForTimeout(700); // 等自动跳转
@@ -96,6 +102,8 @@ await page.waitForSelector("#score-num");
 check("中途可看结果", await page.locator("#score-num").isVisible());
 check("未完成时结果页有继续作答", await page.locator("#btn-continue").isVisible());
 check("中途结果页显示分数浮动", await page.locator("#score-margin").isVisible(), await page.locator("#score-margin").textContent());
+const marginVal = parseFloat((await page.locator("#score-margin").textContent()).replace("±", ""));
+check("未答满时分数浮动 >= 8", marginVal >= 8, "±" + marginVal);
 await page.click("#btn-continue");
 await page.waitForSelector(".q-card");
 check("继续作答回到答题页", await page.locator("#btn-peek").isVisible(), "答题页也有查看结果按钮");

@@ -50,6 +50,41 @@ window.KBQuiz = (function () {
     return a;
   }
 
+  // 均衡抽题：
+  // 1) 第一轮让 18 个领域各出现一题，保证前 18 题就覆盖全部领域；
+  // 2) 之后按领域权重做「加权轮转」，让任意前缀里各领域占比都贴近其题量权重。
+  function buildBalancedOrder() {
+    var pools = {};
+    window.KNOWLEDGE_DOMAINS.forEach(function (d) {
+      pools[d.id] = shuffle(state.questions.filter(function (q) { return q.category === d.id; }).map(function (q) { return q.id; }));
+    });
+    var order = [];
+    var used = {};
+    window.KNOWLEDGE_DOMAINS.forEach(function (d) { used[d.id] = 0; });
+    var total = state.questions.length;
+
+    // 第一轮：每个领域各取一题（领域顺序随机，避免固定套路）
+    shuffle(window.KNOWLEDGE_DOMAINS.slice()).forEach(function (d) {
+      if (pools[d.id].length) { order.push(pools[d.id].shift()); used[d.id]++; }
+    });
+
+    // 之后按权重贪婪轮转，补齐到总量
+    while (order.length < total) {
+      var best = null, bestScore = -Infinity;
+      window.KNOWLEDGE_DOMAINS.forEach(function (d) {
+        if (!pools[d.id].length) return;
+        var target = d.weight / total;
+        var actual = order.length ? used[d.id] / order.length : 0;
+        var score = target - actual;
+        if (score > bestScore) { bestScore = score; best = d.id; }
+      });
+      if (!best) break;
+      order.push(pools[best].shift());
+      used[best]++;
+    }
+    return order;
+  }
+
   /* ---------------- 持久化 ---------------- */
   function save() {
     window.KBStorage.save({
@@ -81,7 +116,7 @@ window.KBQuiz = (function () {
   }
 
   function startNew() {
-    state.order = shuffle(state.questions.map(function (q) { return q.id; }));
+    state.order = buildBalancedOrder();
     state.pos = 0;
     state.answers = {};
     state.forgiveLeft = FORGIVE_TOTAL;
@@ -90,13 +125,23 @@ window.KBQuiz = (function () {
   }
 
   // 分数浮动 ±（非线性）：随已答题数增加而收窄，答满为 0。
-  // 依据：随机抽题在未答满时存在抽样方差，完成度越低浮动越大。
+  // 基础项反映整体完成度；再加「领域覆盖不足」惩罚——某领域作答明显偏少时，其分数不稳会放大总误差。
   function scoreMargin() {
     var n = state.questions.length;
     var answered = Object.keys(state.answers).length;
     if (!n || answered >= n) return 0;
     var completion = answered / n;
-    return Math.round(7 * Math.pow(1 - completion, 1.4) * 10) / 10;
+    var base = 13 * Math.pow(1 - completion, 1.15);
+
+    var sparse = 0, domains = window.KNOWLEDGE_DOMAINS;
+    domains.forEach(function (d) {
+      var qs = state.questions.filter(function (q) { return q.category === d.id; });
+      var ans = qs.filter(function (q) { return state.answers[q.id]; }).length;
+      if (qs.length && completion > 0 && ans / qs.length < 0.5 * completion) sparse++;
+    });
+    var factor = 1 + 0.6 * sparse / domains.length;
+
+    return Math.round(base * factor * 10) / 10;
   }
 
   /* ---------------- 状态 ---------------- */
