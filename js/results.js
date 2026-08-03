@@ -42,17 +42,36 @@ window.KBResults = (function () {
     var ring = $("#score-ring");
     var color = stats.score >= 80 ? "#34d399" : stats.score >= 50 ? "#fbbf24" : "#fb7185";
     ring.style.setProperty("--ring-color", color);
-    ring.style.setProperty("--ring-pct", stats.score + "%");
-    $("#score-num").textContent = stats.score + "%";
 
-    // 分数浮动 ±（未答满时抽样方差所致）
+    // 分数浮动 ±（未答满时抽样方差所致），在环上以浅色段画出 ± 范围
     var margin = window.KBQuiz.scoreMargin();
     var marginEl = $("#score-margin");
     if (margin >= 0.2) {
       marginEl.hidden = false;
       marginEl.textContent = "±" + margin.toFixed(1);
+      ring.style.setProperty("--ring-range", window.KBUI.hexA(color, 0.35));
+      ring.style.setProperty("--ring-score", stats.score + "%");
+      ring.style.setProperty("--ring-score-max", Math.min(100, stats.score + margin) + "%");
     } else {
       marginEl.hidden = true;
+      ring.style.setProperty("--ring-range", "transparent");
+      ring.style.setProperty("--ring-score", stats.score + "%");
+      ring.style.setProperty("--ring-score-max", stats.score + "%");
+    }
+    $("#score-num").textContent = stats.score + "%";
+
+    // 不确定性提醒（两档）
+    var warnEl = $("#score-warn");
+    if (margin > 8) {
+      warnEl.hidden = false;
+      warnEl.className = "score-warn strong";
+      warnEl.innerHTML = '<i class="fa-solid fa-exclamation" aria-hidden="true"></i>作答样本仍偏少，结果不确定性较大（±' + margin.toFixed(1) + '）。建议继续作答，误差会随进度明显缩小。';
+    } else if (margin > 4) {
+      warnEl.hidden = false;
+      warnEl.className = "score-warn";
+      warnEl.innerHTML = '<i class="fa-solid fa-info" aria-hidden="true"></i>结果仍有一定波动（±' + margin.toFixed(1) + '）。继续作答可让分数更稳定。';
+    } else {
+      warnEl.hidden = true;
     }
 
     drawRadar();

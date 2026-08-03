@@ -106,6 +106,11 @@ window.KBApp = (function () {
   }
   function onContinue() { startQuiz(); }
 
+  function onPeek() {
+    if (window.KBQuiz.canPeek() && !window.KBQuiz.finished()) showResults();
+    else toast("继续作答，答满 100 题后可随时查看当前结果");
+  }
+
   function onReset() {
     if (window.confirm("确定清空全部进度并重新开始吗？此操作不可撤销。")) {
       window.KBStorage.clear();
@@ -220,7 +225,7 @@ window.KBApp = (function () {
 
   return {
     init: init, onStart: onStart, onResume: onResume, onHome: onHome,
-    onAnswer: onAnswer, onForgive: onForgive, onNext: onNext, onPrev: onPrev, onContinue: onContinue,
+    onAnswer: onAnswer, onForgive: onForgive, onNext: onNext, onPrev: onPrev, onContinue: onContinue, onPeek: onPeek,
     onReset: onReset, showResults: showResults,
     toast: toast
   };

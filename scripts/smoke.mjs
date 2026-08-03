@@ -49,6 +49,9 @@ const coverage18 = await page.evaluate(() => {
   return new Set(cats).size;
 });
 check("前18题覆盖足够多领域(均衡抽题)", coverage18 >= 14, "distinct=" + coverage18);
+check("答题页查看结果按钮常显", await page.locator("#btn-peek").isVisible());
+check("未满100时查看结果按钮置灰", await page.locator("#btn-peek").evaluate((el) => el.classList.contains("is-muted")));
+check("进度条有100题刻度且可见", (await page.locator("#progress-tick").count()) === 1 && (await page.locator("#progress-tick i").isVisible()));
 const c1 = await currentAnswerIdx();
 await page.keyboard.press(String.fromCharCode(65 + c1)); // 选正确项
 await page.waitForTimeout(700); // 等自动跳转
@@ -90,7 +93,8 @@ await page.evaluate(() => {
   const ids = window.ALL_QUESTIONS.map((q) => q.id);
   const answers = {};
   ids.slice(0, 120).forEach((id, i) => {
-    answers[id] = { choice: window.ALL_QUESTIONS[i].answer, ts: Date.now() };
+    // 约 25% 答错，让得分落在中位、方差带上界不触顶，便于断言范围带可见
+    answers[id] = { choice: i % 4 === 0 ? (window.ALL_QUESTIONS[i].answer + 1) % 4 : window.ALL_QUESTIONS[i].answer, ts: Date.now() };
   });
   localStorage.setItem("kb_quiz_v1", JSON.stringify({ version: 1, order: ids, pos: 120, answers, forgiveLeft: 4, updatedAt: Date.now() }));
 });
@@ -104,9 +108,16 @@ check("未完成时结果页有继续作答", await page.locator("#btn-continue"
 check("中途结果页显示分数浮动", await page.locator("#score-margin").isVisible(), await page.locator("#score-margin").textContent());
 const marginVal = parseFloat((await page.locator("#score-margin").textContent()).replace("±", ""));
 check("未答满时分数浮动 >= 8", marginVal >= 8, "±" + marginVal);
+const ringRange = await page.evaluate(() => {
+  const s = getComputedStyle(document.querySelector("#score-ring"));
+  return { score: s.getPropertyValue("--ring-score"), max: s.getPropertyValue("--ring-score-max") };
+});
+check("环状图显示方差范围带", ringRange.score && ringRange.max && ringRange.score !== ringRange.max, JSON.stringify(ringRange));
+check("不确定性提醒(强档)显示", await page.locator("#score-warn").isVisible() && (await page.locator("#score-warn").getAttribute("class")).includes("strong"));
 await page.click("#btn-continue");
 await page.waitForSelector(".q-card");
 check("继续作答回到答题页", await page.locator("#btn-peek").isVisible(), "答题页也有查看结果按钮");
+check("满100后查看结果按钮不置灰", !(await page.locator("#btn-peek").evaluate((el) => el.classList.contains("is-muted"))));
 
 // ---------- 8. 一键完成全部（全部答对 → 100%，答满后浮动消失） ----------
 await page.evaluate(() => {

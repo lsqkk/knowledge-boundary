@@ -58,7 +58,7 @@
 
       <div class="home-info">
         <div class="info-block">
-          <h2><i class="fa-solid fa-circle-info" aria-hidden="true"></i> 作答规则</h2>
+          <h2><i class="fa-solid fa-info" aria-hidden="true"></i> 作答规则</h2>
           <ul>
             <li><b>答满 100 题</b>后，随时可以查看当前结果——没做完也没关系，看完一键「继续作答」接着来。</li>
             <li>每道题<b>作答即锁定</b>；答对自动进下一题，答错停留看清解析，手动点「下一题」。</li>
@@ -91,7 +91,10 @@
             <span id="quiz-count">1 / 596</span>
             <span id="quiz-pct">0%</span>
           </div>
-          <div class="progress-track"><div class="progress-fill" id="quiz-progress-fill"></div></div>
+          <div class="progress-track">
+            <div class="progress-fill" id="quiz-progress-fill"></div>
+            <span class="progress-tick" id="progress-tick"><i>100题</i></span>
+          </div>
         </div>
 
         <article class="q-card" id="q-card">
@@ -108,7 +111,7 @@
           </div>
           <div class="q-nav">
             <button class="btn btn-ghost" id="btn-prev">上一题</button>
-            <button class="btn btn-ghost" id="btn-peek" hidden>查看结果</button>
+            <button class="btn btn-ghost" id="btn-peek">查看结果</button>
             <span class="nav-spacer"></span>
             <button class="btn btn-secondary" id="btn-skip">跳过此题</button>
             <button class="btn btn-primary" id="btn-next">下一题 →</button>
@@ -137,6 +140,7 @@
             <p class="score-desc" id="score-desc"></p>
           </div>
         </div>
+        <p class="score-warn" id="score-warn" hidden></p>
       </div>
 
       <div class="result-body">

@@ -121,6 +121,9 @@ window.KBUI = (function () {
     $("#quiz-count").textContent = "第 " + (pos + 1) + " / " + orderLen + " 题";
     $("#quiz-pct").textContent = runPct + "% 已探索";
     $("#quiz-progress-fill").style.width = runPct + "%";
+    // 100 题里程碑刻度
+    var tick = $("#progress-tick");
+    if (tick) tick.style.left = (100 / window.KBQuiz.total() * 100) + "%";
 
     $("#q-domain").innerHTML = dom ? '<i class="' + dom.icon + '" aria-hidden="true"></i> ' + dom.name : q.category;
     $("#q-sub").textContent = q.subdomain;
@@ -184,10 +187,12 @@ window.KBUI = (function () {
     $("#btn-next").onclick = function () { window.KBApp.onNext(); };
     $("#btn-skip").onclick = function () { window.KBApp.onNext(); };
     btnForgive.onclick = function () { window.KBApp.onForgive(); };
-    // 答满 100 题后可随时查看结果
+    // 答满 100 题后可随时查看结果；未达标时置灰，hover/点击提示
     var peek = $("#btn-peek");
-    peek.hidden = !(window.KBQuiz.canPeek() && !window.KBQuiz.finished());
-    peek.onclick = function () { window.KBApp.showResults(); };
+    var canPeek = window.KBQuiz.canPeek() && !window.KBQuiz.finished();
+    peek.classList.toggle("is-muted", !canPeek);
+    peek.title = canPeek ? "" : "答满 100 题后即可查看当前结果";
+    peek.onclick = function () { window.KBApp.onPeek(); };
 
     window.KBUI.updateProgressChip();
   }

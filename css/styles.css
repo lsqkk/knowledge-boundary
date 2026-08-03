@@ -87,6 +87,8 @@ body {
   text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
 .btn:active { transform: translateY(1px); }
+.btn.is-muted { opacity: .45; cursor: pointer; }
+.btn.is-muted:hover { opacity: .45; transform: none; border-color: var(--line); color: var(--muted); }
 
 /* 键盘焦点可见性 */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
@@ -187,7 +189,14 @@ body {
   font-size: 13px; color: var(--muted); margin-bottom: 8px;
   font-family: var(--mono);
 }
-.progress-track { height: 6px; border-radius: 99px; background: rgba(148,163,184,.12); overflow: hidden; }
+.progress-track { position: relative; height: 6px; border-radius: 99px; background: rgba(148,163,184,.12); }
+/* 100 题里程碑刻度 */
+.progress-tick {
+  position: absolute; left: 16.8%; top: 50%; transform: translate(-50%, -50%);
+  width: 2px; height: 18px; pointer-events: none; z-index: 1;
+}
+.progress-tick::before { content: ""; position: absolute; inset: 0; background: rgba(125, 211, 252, .6); border-radius: 2px; }
+.progress-tick i { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); margin-top: 3px; font-style: normal; font-size: 11px; color: var(--faint); white-space: nowrap; }
 .progress-fill {
   height: 100%; width: 0%; border-radius: 99px;
   background: linear-gradient(90deg, #38bdf8, #a78bfa);
@@ -270,11 +279,26 @@ body {
 .result-score-row { display: flex; gap: 34px; align-items: center; justify-content: center; flex-wrap: wrap; }
 .score-ring {
   width: 190px; height: 190px; border-radius: 50%;
-  background: conic-gradient(var(--ring-color, #38bdf8) var(--ring-pct, 0%), rgba(148,163,184,.1) 0);
+  /* 实心弧 = 得分；浅色段 = ±浮动范围；其余为底 */
+  background: conic-gradient(
+    var(--ring-color, #38bdf8) var(--ring-score, 0%),
+    var(--ring-range, rgba(125, 211, 252, .35)) var(--ring-score, 0%),
+    var(--ring-range, rgba(125, 211, 252, .35)) var(--ring-score-max, 0%),
+    rgba(148, 163, 184, .1) var(--ring-score-max, 0%),
+    rgba(148, 163, 184, .1) 100%
+  );
   display: grid; place-items: center;
   box-shadow: 0 0 60px -18px var(--ring-color, #38bdf8);
   transition: background .6s var(--ease);
 }
+.score-warn {
+  margin: 22px auto 0; max-width: 600px;
+  font-size: 14px; color: #fbbf24;
+  background: rgba(251, 191, 36, .08); border: 1px solid rgba(251, 191, 36, .3);
+  border-radius: 12px; padding: 10px 18px;
+}
+.score-warn.strong { color: var(--bad); background: rgba(251, 113, 133, .08); border-color: rgba(251, 113, 133, .35); }
+.score-warn i { margin-right: 8px; }
 .score-ring-inner {
   width: 156px; height: 156px; border-radius: 50%;
   background: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center;
