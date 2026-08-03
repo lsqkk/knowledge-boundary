@@ -281,6 +281,7 @@ body {
   border: 1px solid var(--line);
 }
 .score-num { font-family: var(--mono); font-size: 44px; font-weight: 700; color: var(--text); line-height: 1; }
+.score-margin { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--faint); margin-top: 5px; }
 .score-label { font-size: 12px; color: var(--faint); margin-top: 8px; letter-spacing: .1em; }
 .score-meta { text-align: left; max-width: 340px; }
 .score-meta p { margin: 6px 0; font-size: 15px; color: var(--muted); }

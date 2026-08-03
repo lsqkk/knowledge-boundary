@@ -89,13 +89,14 @@ window.KBQuiz = (function () {
     return state.order.length;
   }
 
-  // 重测部分领域：给出 id 列表，洗牌后仅作答这些题
-  function startSubset(idList) {
-    var valid = idList.filter(function (id) { return state.byId[id]; });
-    state.order = shuffle(valid);
-    state.pos = 0;
-    save();
-    return state.order.length;
+  // 分数浮动 ±（非线性）：随已答题数增加而收窄，答满为 0。
+  // 依据：随机抽题在未答满时存在抽样方差，完成度越低浮动越大。
+  function scoreMargin() {
+    var n = state.questions.length;
+    var answered = Object.keys(state.answers).length;
+    if (!n || answered >= n) return 0;
+    var completion = answered / n;
+    return Math.round(7 * Math.pow(1 - completion, 1.4) * 10) / 10;
   }
 
   /* ---------------- 状态 ---------------- */
@@ -208,24 +209,9 @@ window.KBQuiz = (function () {
     return { name: tier[0], desc: tier[1] };
   }
 
-  // 薄弱领域（已足量作答且得分低于阈值 65 的领域 id），供「重测」使用
-  function weakDomainIds(threshold) {
-    threshold = threshold == null ? 65 : threshold;
-    return allDomainStats()
-      .filter(function (s) { return s.confident && s.score != null && s.score < threshold; })
-      .map(function (s) {
-        return state.questions
-          .filter(function (q) { return q.category === s.domainId; })
-          .map(function (q) { return q.id; })
-          .flat();
-      })
-      .reduce(function (a, b) { return a.concat(b); }, []);
-  }
-
   return {
     init: init,
     startNew: startNew,
-    startSubset: startSubset,
     current: current,
     answeredCount: answeredCount,
     isAnswered: isAnswered,
@@ -237,12 +223,12 @@ window.KBQuiz = (function () {
     forgiveLeft: function () { return state.forgiveLeft; },
     isCorrect: isCorrect,
     canPeek: canPeek,
+    scoreMargin: scoreMargin,
     next: next,
     prev: prev,
     allDomainStats: allDomainStats,
     overallStats: overallStats,
     rankFor: rankFor,
-    weakDomainIds: weakDomainIds,
     _state: state
   };
 })();

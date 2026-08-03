@@ -56,14 +56,6 @@
         <p class="hero-note" id="resume-note" hidden></p>
       </div>
 
-      <div class="domain-map">
-        <div class="section-head">
-          <h2>知识疆域</h2>
-          <p>按知识体量赋权 · 权重越大题量越多</p>
-        </div>
-        <div class="domain-grid" id="domain-grid"><!-- 动态渲染 --></div>
-      </div>
-
       <div class="home-info">
         <div class="info-block">
           <h2><i class="fa-solid fa-circle-info" aria-hidden="true"></i> 作答规则</h2>
@@ -80,6 +72,14 @@
           <p>世界变化越来越快，单一技能会过时，而<b>广博的知识面是适应力的底座</b>——它让你对新事物不陌生、对陌生问题敢下手。</p>
           <p>更重要的是，知识面宽的人更能<b>分辨信息与谎言</b>：理解背景、识别偏差、做出不后悔的决策。所谓「通识」，就是让你在任何一个房间里，都能听懂别人在聊什么。</p>
         </div>
+      </div>
+
+      <div class="domain-map">
+        <div class="section-head">
+          <h2>知识疆域</h2>
+          <p>按知识体量赋权 · 权重越大题量越多</p>
+        </div>
+        <div class="domain-grid" id="domain-grid"><!-- 动态渲染 --></div>
       </div>
     </section>
 
@@ -126,6 +126,7 @@
           <div class="score-ring" id="score-ring">
             <div class="score-ring-inner">
               <span class="score-num" id="score-num">0%</span>
+              <span class="score-margin" id="score-margin" hidden></span>
               <span class="score-label">加权正确率</span>
             </div>
           </div>
@@ -162,8 +163,7 @@
       <div class="result-actions">
         <button class="btn btn-primary" id="btn-continue" hidden>继续作答</button>
         <button class="btn btn-secondary" id="btn-download"><i class="fa-solid fa-download" aria-hidden="true"></i> 下载结果图</button>
-        <button class="btn btn-secondary" id="btn-share"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> 分享结果</button>
-        <button class="btn btn-secondary" id="btn-retry-weak">重测薄弱疆域</button>
+        <button class="btn btn-secondary" id="btn-share"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> 分享本测试</button>
         <button class="btn btn-ghost" id="btn-home">返回首页</button>
         <button class="btn btn-danger-ghost" id="btn-reset">清空并重来</button>
       </div>

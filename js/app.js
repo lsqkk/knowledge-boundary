@@ -106,12 +106,6 @@ window.KBApp = (function () {
   }
   function onContinue() { startQuiz(); }
 
-  function onRetryWeak() {
-    var ids = window.KBQuiz.weakDomainIds(65);
-    if (!ids.length) { window.alert("当前没有得分低于 65% 的薄弱领域，无需重测。"); return; }
-    window.KBQuiz.startSubset(ids);
-    startQuiz();
-  }
   function onReset() {
     if (window.confirm("确定清空全部进度并重新开始吗？此操作不可撤销。")) {
       window.KBStorage.clear();
@@ -215,7 +209,6 @@ window.KBApp = (function () {
   function bindResultsButtons() {
     $("#btn-download").onclick = function () { window.KBResults.downloadResult(); };
     $("#btn-share").onclick = function () { window.KBResults.shareResult(); };
-    $("#btn-retry-weak").onclick = function () { window.KBApp.onRetryWeak(); };
     $("#btn-home").onclick = function () { window.KBApp.onHome(); };
     $("#btn-reset").onclick = function () { window.KBApp.onReset(); };
   }
@@ -228,7 +221,7 @@ window.KBApp = (function () {
   return {
     init: init, onStart: onStart, onResume: onResume, onHome: onHome,
     onAnswer: onAnswer, onForgive: onForgive, onNext: onNext, onPrev: onPrev, onContinue: onContinue,
-    onRetryWeak: onRetryWeak, onReset: onReset, showResults: showResults,
+    onReset: onReset, showResults: showResults,
     toast: toast
   };
 })();

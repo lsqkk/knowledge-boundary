@@ -5,9 +5,9 @@ window.KBResults = (function () {
 
   // 各领域「参考平均分」（作为虚线基准），id 顺序与 KNOWLEDGE_DOMAINS 无关，按名称映射
   var REFERENCE = {
-    math: 85, natural: 85, tech: 83, medicine: 75, history: 80, geocult: 73,
-    polilaw: 77, military: 70, econ: 70, education: 75, psychsoc: 70, philrel: 73,
-    langlit: 78, art: 68, popcult: 73, sports: 73, lifestyle: 72, media: 80
+    math: 80, natural: 80, tech: 78, medicine: 70, history: 75, geocult: 68,
+    polilaw: 72, military: 65, econ: 65, education: 70, psychsoc: 65, philrel: 68,
+    langlit: 73, art: 63, popcult: 68, sports: 68, lifestyle: 67, media: 75
   };
 
   var SITE_URL = "https://kn-bo.130923.xyz";
@@ -45,14 +45,39 @@ window.KBResults = (function () {
     ring.style.setProperty("--ring-pct", stats.score + "%");
     $("#score-num").textContent = stats.score + "%";
 
+    // 分数浮动 ±（未答满时抽样方差所致）
+    var margin = window.KBQuiz.scoreMargin();
+    var marginEl = $("#score-margin");
+    if (margin >= 0.2) {
+      marginEl.hidden = false;
+      marginEl.textContent = "±" + margin.toFixed(1);
+    } else {
+      marginEl.hidden = true;
+    }
+
     drawRadar();
     renderRankList();
+    fitRankPanel();
 
     // 未完成时提供「继续作答」返回当前进度
     var continueBtn = $("#btn-continue");
     var finished = window.KBQuiz.finished();
     continueBtn.hidden = finished;
     continueBtn.onclick = function () { window.KBApp.onContinue(); };
+  }
+
+  // 宽屏下让右侧「疆域明细」与左侧雷达等高、内部滚动，避免左侧留白
+  function fitRankPanel() {
+    var radarPanel = document.querySelector(".radar-panel");
+    var rankPanel = document.querySelector(".domain-rank");
+    if (!radarPanel || !rankPanel) return;
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      rankPanel.style.maxHeight = radarPanel.offsetHeight + "px";
+      rankPanel.style.overflowY = "auto";
+    } else {
+      rankPanel.style.maxHeight = "";
+      rankPanel.style.overflowY = "";
+    }
   }
 
   /* ---------------- 领域排名列表 ---------------- */
@@ -217,8 +242,9 @@ window.KBResults = (function () {
     var avg = referenceOverall();
     var diff = stats.score - avg;
     var cmp = diff >= 0 ? "高于" : "低于";
+    var margin = window.KBQuiz.scoreMargin();
 
-    var dpr = 2, W = 960, H = 1280;
+    var dpr = 2, W = 960, H = 1720;
     var canvas = document.createElement("canvas");
     canvas.width = W * dpr; canvas.height = H * dpr;
     var ctx = canvas.getContext("2d");
@@ -237,27 +263,77 @@ window.KBResults = (function () {
     ctx.font = "600 26px 'PingFang SC','Microsoft YaHei',sans-serif";
     ctx.fillText("知识边界 · 你的知识星图", W / 2, 84);
 
-    // 总分
+    // 总分 + 浮动
     ctx.textBaseline = "alphabetic";
     ctx.fillStyle = "#e8edf8";
-    ctx.font = "700 118px 'PingFang SC','Microsoft YaHei',sans-serif";
-    ctx.fillText(stats.score + "%", W / 2, 216);
+    ctx.font = "700 108px 'PingFang SC','Microsoft YaHei',sans-serif";
+    ctx.fillText(stats.score + "%", W / 2 - 40, 208);
+    if (margin >= 0.2) {
+      ctx.fillStyle = "#93a2c0";
+      ctx.font = "500 28px 'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("±" + margin.toFixed(1), W / 2 + 46, 196);
+      ctx.textAlign = "center";
+    }
     ctx.fillStyle = "#93a2c0";
     ctx.font = "20px 'PingFang SC','Microsoft YaHei',sans-serif";
-    ctx.fillText("加权正确率 · 综合等级「" + rank.name + "」", W / 2, 256);
+    ctx.fillText("加权正确率 · 综合等级「" + rank.name + "」", W / 2, 248);
     ctx.fillStyle = diff >= 0 ? "#34d399" : "#fb7185";
-    ctx.fillText("平均参考 " + avg.toFixed(1) + "% · 你" + cmp + " " + Math.abs(diff).toFixed(1) + " 分", W / 2, 290);
+    ctx.fillText("平均参考 " + avg.toFixed(1) + "% · 你" + cmp + " " + Math.abs(diff).toFixed(1) + " 分", W / 2, 282);
 
     // 雷达
-    var rsize = 620, rdpr = 2;
+    var rsize = 540, rdpr = 2;
     var rCanvas = document.createElement("canvas");
     rCanvas.width = rsize * rdpr; rCanvas.height = rsize * rdpr;
     var rctx = rCanvas.getContext("2d");
     rctx.scale(rdpr, rdpr);
     paintRadar(rctx, rsize);
-    ctx.drawImage(rCanvas, (W - rsize) / 2, 320, rsize, rsize);
+    ctx.drawImage(rCanvas, (W - rsize) / 2, 318, rsize, rsize);
+
+    // 分隔线
+    ctx.strokeStyle = "rgba(148,163,184,0.25)";
+    ctx.beginPath(); ctx.moveTo(70, 902); ctx.lineTo(W - 70, 902); ctx.stroke();
+
+    // 疆域明细
+    ctx.fillStyle = "#7dd3fc";
+    ctx.font = "600 22px 'PingFang SC','Microsoft YaHei',sans-serif";
+    ctx.fillText("疆域明细 · 各领域掌握度", W / 2, 952);
+
+    var domainStats = window.KBQuiz.allDomainStats();
+    var rowStart = 1000, step = 56;
+    for (var i = 0; i < domainStats.length; i++) {
+      var col = i < 9 ? 0 : 1;
+      var r = i % 9;
+      var y = rowStart + r * step;
+      var d = window.KNOWLEDGE_DOMAINS[i];
+      var s = domainStats[i];
+      var val = s.score == null ? 0 : s.score;
+      var xName = col === 0 ? 120 : 545;
+      var xBar = col === 0 ? 250 : 675;
+      var xScore = col === 0 ? 438 : 863;
+      // 名称
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#c9d4ee";
+      ctx.font = "18px 'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText(d.name, xName, y);
+      // 迷你条
+      ctx.fillStyle = "rgba(148,163,184,0.18)";
+      ctx.fillRect(xBar, y - 10, 160, 7);
+      ctx.fillStyle = d.color;
+      ctx.fillRect(xBar, y - 10, Math.max(2, 160 * val / 100), 7);
+      // 分数（>=均分绿，<均分红）
+      ctx.textAlign = "right";
+      ctx.fillStyle = val >= REFERENCE[d.id] ? "#34d399" : "#fb7185";
+      ctx.font = "700 19px 'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText(s.score == null ? "—" : val + "%", xScore, y);
+      // 平均参考小字
+      ctx.fillStyle = "rgba(147,162,192,0.75)";
+      ctx.font = "13px 'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText("均 " + REFERENCE[d.id], xBar, y + 18);
+    }
 
     // 底部项目链接
+    ctx.textAlign = "center";
     ctx.fillStyle = "#5c6b8f";
     ctx.font = "16px 'PingFang SC','Microsoft YaHei',sans-serif";
     ctx.fillText("知识边界 · Knowledge Boundary · 18 大领域 · 596 道题", W / 2, H - 78);

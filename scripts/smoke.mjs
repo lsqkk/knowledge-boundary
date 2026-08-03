@@ -95,17 +95,15 @@ await page.click("#btn-peek-home");
 await page.waitForSelector("#score-num");
 check("中途可看结果", await page.locator("#score-num").isVisible());
 check("未完成时结果页有继续作答", await page.locator("#btn-continue").isVisible());
+check("中途结果页显示分数浮动", await page.locator("#score-margin").isVisible(), await page.locator("#score-margin").textContent());
 await page.click("#btn-continue");
 await page.waitForSelector(".q-card");
 check("继续作答回到答题页", await page.locator("#btn-peek").isVisible(), "答题页也有查看结果按钮");
 
-// ---------- 8. 一键完成全部（math 全错制造唯一薄弱领域） ----------
+// ---------- 8. 一键完成全部（全部答对 → 100%，答满后浮动消失） ----------
 await page.evaluate(() => {
   const answers = {};
-  window.ALL_QUESTIONS.forEach((q) => {
-    const wrong = q.category === "math";
-    answers[q.id] = { choice: wrong ? (q.answer + 1) % 4 : q.answer, ts: Date.now() };
-  });
+  window.ALL_QUESTIONS.forEach((q) => { answers[q.id] = { choice: q.answer, ts: Date.now() }; });
   const ids = window.ALL_QUESTIONS.map((q) => q.id);
   localStorage.setItem("kb_quiz_v1", JSON.stringify({ version: 1, order: ids, pos: ids.length, answers, forgiveLeft: 4, updatedAt: Date.now() }));
 });
@@ -122,6 +120,8 @@ const radar = await page.locator("#radar");
 check("雷达图已绘制", (await radar.evaluate((c) => c.getContext("2d").getImageData(0, 0, c.width, c.height).data.some((v) => v !== 0))), "canvas 非空");
 const radarBox = await radar.boundingBox();
 check("雷达图保持 1:1 方形", radarBox && Math.abs(radarBox.width - radarBox.height) < 2, radarBox ? radarBox.width + "x" + radarBox.height : "none");
+const rankPanelOY = await page.locator(".domain-rank").evaluate((el) => getComputedStyle(el).overflowY);
+check("宽屏疆域明细内部滚动", rankPanelOY === "auto", rankPanelOY);
 check("结果页显示平均参考", (await page.locator("#score-avg").textContent()).includes("平均参考"), await page.locator("#score-avg").textContent());
 const shareCard = await page.evaluate(() => window.KBResults.buildShareCard());
 check("结果图可生成(含链接画布)", typeof shareCard === "string" && shareCard.startsWith("data:image/png"), shareCard ? shareCard.length + " chars" : "none");
@@ -134,15 +134,10 @@ await page.click("#btn-share"); // 分享（无 share API 时走剪贴板/提示
 await page.waitForTimeout(300);
 check("分享按钮可用(无报错)", true, "点击无异常");
 check("完成态无继续作答按钮", !(await page.locator("#btn-continue").isVisible()));
+check("答满后分数浮动消失", !(await page.locator("#score-margin").isVisible()));
 await page.screenshot({ path: path.join(ROOT, "artifacts/results.png"), fullPage: true });
 
-// ---------- 9. 重测薄弱领域（math） ----------
-await page.click("#btn-retry-weak");
-await page.waitForSelector(".q-card");
-const weakTotal = await page.evaluate(() => JSON.parse(localStorage.getItem("kb_quiz_v1")).order.length);
-check("重测薄弱=数学(30题)", weakTotal === 30, "order=" + weakTotal);
-
-// ---------- 10. 重置 ----------
+// ---------- 9. 重置 ----------
 await page.evaluate(() => {
   const s = JSON.parse(localStorage.getItem("kb_quiz_v1"));
   s.pos = s.order.length;
